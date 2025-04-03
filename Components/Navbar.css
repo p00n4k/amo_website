@@ -6,7 +6,7 @@
 
 /* Navbar */
 .navbar {
-  @apply w-full mx-auto px-12 py-4 bg-white shadow-md rounded-full;
+  @apply w-full mx-[50px] px-12 py-4 bg-white shadow-md rounded-full;
 }
 
 /* Navbar content */
@@ -77,5 +77,5 @@
 }
 
 .hidden_line {
-  @apply hidden group-hover:inline ml-2 text-gray-800 bg-gray-300 px-3 py-1 rounded-full;
+  @apply hidden group-hover:inline ml-2 text-gray-800 bg-gray-300 px-3 py-0 rounded-full text-base font-medium;
 }

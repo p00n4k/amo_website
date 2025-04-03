@@ -1,0 +1,60 @@
+@import 'tailwindcss';
+
+/* Custom animations */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  
+  @keyframes fadeOut {
+    from { opacity: 1; }
+    to { opacity: 0; }
+  }
+  
+  /* Slider transitions */
+  .slider-transition {
+    transition: opacity 1s ease-in-out;
+  }
+  
+  /* Custom styles for navigation elements */
+  .slider-arrow {
+    @apply bg-black/50 text-white p-4 rounded-full hover:bg-black/70 transition-colors duration-300 z-10;
+  }
+  
+  .slider-dot {
+    @apply w-3 h-3 rounded-full transition-all duration-300;
+  }
+  
+  .slider-dot.active {
+    @apply bg-white scale-125;
+  }
+  
+  .slider-dot.inactive {
+    @apply bg-white/50 hover:bg-white/70;
+  }
+  
+  /* Tagline styling */
+  .tagline {
+    
+  }
+  
+  /* Responsive adjustments */
+  @media (max-width: 2000px) {
+    .slider-arrow {
+      @apply p-3;
+    }
+    
+    .tagline {
+      @apply bottom-20 text-base max-w-xs;
+    }
+    .tagline-top{
+        @apply top-20 text-base max-w-xs;
+    }
+    .tagline-bottom{
+        @apply bottom-20 text-base max-w-xs;
+    }
+
+
+  }
+
+  

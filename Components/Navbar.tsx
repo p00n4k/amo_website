@@ -8,9 +8,9 @@ const Navbar = () => {
                 <div className="navbar-content">
                     {/* Left navigation */}
                     <div className="navbar-left">
-                        <a href="#" className="nav-link">Home</a>
-                        <a href="#" className="nav-link">Product</a>
-                        <a href="#" className="nav-link">Project</a>
+                        <a href="/home" className="nav-link">Home</a>
+                        <a href="/product" className="nav-link">Product</a>
+                        <a href="/projects" className="nav-link">Project</a>
                     </div>
 
                     {/* Middle Logo */}
@@ -21,7 +21,7 @@ const Navbar = () => {
                     {/* Right navigation */}
                     <div className="navbar-right">
                         {/* Line Icon with hover effect */}
-                        <a href="#" className="icon-link group">
+                        <a href="/" className="icon-link group">
                             <img src="/images/line.png" alt="Line Logo" className="icon" />
                             <span className="hidden_line">
                                 amocorner
@@ -29,7 +29,7 @@ const Navbar = () => {
                         </a>
 
                         {/* Get in Touch Button */}
-                        <a href="#" className="cta-button">Get in touch</a>
+                        <a href="/" className="cta-button">Get in touch</a>
                     </div>
                 </div>
             </nav>
