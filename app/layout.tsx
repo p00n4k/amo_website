@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import Navbar from "@/Components/Navbar";
 import type { ReactNode } from "react";
+import Footer from "@/Components/Footer";
 
 const Layout = ({ children }: { children: ReactNode }) => {
   return (
@@ -14,6 +15,7 @@ const Layout = ({ children }: { children: ReactNode }) => {
             <Navbar />
           </div>
         </div>
+        <Footer/>
       </body>
     </html>
   );
