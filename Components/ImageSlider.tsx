@@ -3,8 +3,12 @@
 import { useState } from 'react';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
 
-const ImageSlider = ({ images }) => {
-  const [index, setIndex] = useState(0);
+interface ImageSliderProps {
+  images: string[];
+}
+
+const ImageSlider: React.FC<ImageSliderProps> = ({ images }) => {
+  const [index, setIndex] = useState<number>(0);
 
   const prev = () => {
     setIndex((prevIndex) => (prevIndex === 0 ? images.length - 1 : prevIndex - 1));
@@ -14,11 +18,12 @@ const ImageSlider = ({ images }) => {
     setIndex((prevIndex) => (prevIndex + 1) % images.length);
   };
 
-  const getImage = (offset) => images[(index + offset) % images.length];
+  const getImage = (offset: number): string =>
+    images[(index + offset) % images.length];
 
   return (
     <div className="flex justify-center items-center bg-white m p-6">
-      <div className="flex w-full max-w-8\10xl h-[600px] gap-4">
+      <div className="flex w-full max-w-8/10xl h-[600px] gap-4">
         {/* Main Image */}
         <div className="relative flex-[3] rounded-[30px] overflow-hidden">
           <img
@@ -28,7 +33,9 @@ const ImageSlider = ({ images }) => {
           />
 
           {/* LOG Text */}
-          <div className="absolute top-6 left-6 text-white text-[120px] font-bold mix-blend-difference leading-none select-none">LOG</div>
+          <div className="absolute top-6 left-6 text-white text-[120px] font-bold mix-blend-difference leading-none select-none">
+            LOG
+          </div>
 
           {/* Button and Navigation */}
           <div className="absolute bottom-6 left-6 flex items-center gap-3">
@@ -50,20 +57,12 @@ const ImageSlider = ({ images }) => {
           </div>
         </div>
 
-        {/* Next Image */}
+        {/* Next Images */}
         <div className="flex-[1.5] rounded-[30px] overflow-hidden">
-          <img
-            src={getImage(1)}
-            alt="Next"
-            className="w-full h-full object-cover"
-          />
+          <img src={getImage(1)} alt="Next" className="w-full h-full object-cover" />
         </div>
         <div className="flex-[1.5] rounded-[30px] overflow-hidden">
-          <img
-            src={getImage(2)}
-            alt="Next"
-            className="w-full h-full object-cover"
-          />
+          <img src={getImage(2)} alt="Next" className="w-full h-full object-cover" />
         </div>
       </div>
     </div>

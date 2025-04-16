@@ -45,9 +45,9 @@ const Footer = () => {
       </p>
 
       <div className="flex justify-center gap-6 text-orange-500 text-2xl mb-6">
-        <Image src="/images/line.png" alt="LINE" width={28} height={28} />
-        <Image src="/images/line.png" alt="Facebook" width={28} height={28} />
-        <Image src="/images/line.png" alt="Instagram" width={28} height={28} />
+        <Image src="/images/contactus_btn-1.png" alt="LINE" width={28} height={28} />
+        <Image src="/images/contactus_btn-2.png" alt="Facebook" width={28} height={28} />
+        <Image src="/images/contactus_btn.png" alt="Instagram" width={28} height={28} />
       </div>
 
       <hr className="border-t border-orange-300 w-11/12 mx-auto mb-6" />
