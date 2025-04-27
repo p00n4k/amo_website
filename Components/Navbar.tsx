@@ -29,7 +29,7 @@ const Navbar = () => {
                         </a>
 
                         {/* Get in Touch Button */}
-                        <a href="/" className="cta-button">Get in touch</a>
+                        <a href="/about" className="cta-button">Get in touch</a>
                     </div>
                 </div>
             </nav>

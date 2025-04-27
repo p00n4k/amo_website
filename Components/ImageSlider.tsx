@@ -1,4 +1,4 @@
-'use client';
+
 
 import { useState } from 'react';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
@@ -19,16 +19,16 @@ const ImageSlider: React.FC<ImageSliderProps> = ({ images }) => {
   };
 
   const getImage = (offset: number): string =>
-    images[(index + offset) % images.length];
+    images[(index + offset + images.length) % images.length];
 
   return (
     <div className="flex justify-center items-center bg-white m p-6">
-      <div className="flex w-full max-w-8/10xl h-[600px] gap-4">
+      <div className="flex w-full max-w-7xl h-[600px] gap-4">
         {/* Main Image */}
         <div className="relative flex-[3] rounded-[30px] overflow-hidden">
           <img
             src={getImage(0)}
-            alt="Main"
+            alt={`Image ${index}`}
             className="w-full h-full object-cover"
           />
 
@@ -39,17 +39,21 @@ const ImageSlider: React.FC<ImageSliderProps> = ({ images }) => {
 
           {/* Button and Navigation */}
           <div className="absolute bottom-6 left-6 flex items-center gap-3">
-            <button className="bg-white text-orange-500 border-2 border-orange-500 font-semibold px-6 py-2 rounded-full hover:bg-orange-50 text-sm transition">
+            <button
+              className="bg-white text-orange-500 border-2 border-orange-500 font-semibold px-6 py-2 rounded-full hover:bg-orange-50 text-sm transition"
+            >
               Take a Look Here
             </button>
             <button
               onClick={prev}
+              aria-label="Previous slide"
               className="bg-white border-2 border-orange-500 text-orange-500 p-3 rounded-full hover:bg-orange-50 transition"
             >
               <ArrowLeft size={20} />
             </button>
             <button
               onClick={next}
+              aria-label="Next slide"
               className="bg-white border-2 border-orange-500 text-orange-500 p-3 rounded-full hover:bg-orange-50 transition"
             >
               <ArrowRight size={20} />
@@ -59,10 +63,18 @@ const ImageSlider: React.FC<ImageSliderProps> = ({ images }) => {
 
         {/* Next Images */}
         <div className="flex-[1.5] rounded-[30px] overflow-hidden">
-          <img src={getImage(1)} alt="Next" className="w-full h-full object-cover" />
+          <img
+            src={getImage(1)}
+            alt={`Image ${(index + 1) % images.length}`}
+            className="w-full h-full object-cover"
+          />
         </div>
         <div className="flex-[1.5] rounded-[30px] overflow-hidden">
-          <img src={getImage(2)} alt="Next" className="w-full h-full object-cover" />
+          <img
+            src={getImage(2)}
+            alt={`Image ${(index + 2) % images.length}`}
+            className="w-full h-full object-cover"
+          />
         </div>
       </div>
     </div>
