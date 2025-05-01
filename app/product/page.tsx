@@ -32,6 +32,7 @@ export default function Product() {
           </div>
         </div>
       </div>
+      {/* Banner Section */}
       <div className="bg-[#3a3a3a] px-4 py-6 flex justify-center items-center">
         <div className="w-full max-w-7xl h-[150px] rounded-xl overflow-hidden shadow-lg relative">
           <Image
@@ -42,6 +43,7 @@ export default function Product() {
           />
         </div>
       </div>
+      {/* Banner End */}
       <ProductGallery />
     </div>
   )
