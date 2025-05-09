@@ -10,7 +10,7 @@ const Footer = () => {
         {/* Location */}
         <div className="flex items-start gap-4">
           <div className="p-3">
-            <Image src="/images/line.png" alt="Location" width={32} height={32} />
+            <Image src="/images/Group 33 (1).png" alt="Location" width={32} height={32} />
           </div>
           <div className="text-left">
             <h2 className="font-semibold">Amo Co., Ltd. - Bangkok, Thailand</h2>
@@ -21,7 +21,7 @@ const Footer = () => {
         {/* Phone */}
         <div className="flex items-start gap-4">
           <div className="p-3">
-            <Image src="/images/line.png" alt="Phone" width={32} height={32} />
+            <Image src="/images/Group 143.png" alt="Phone" width={32} height={32} />
           </div>
           <div className="text-left text-sm">
             <p>02-056-0610</p>
@@ -32,7 +32,7 @@ const Footer = () => {
         {/* Email */}
         <div className="flex items-start gap-4">
           <div className="p-3">
-            <Image src="/images/line.png" alt="Email" width={32} height={32} />
+            <Image src="/images/Group 144.png" alt="Email" width={32} height={32} />
           </div>
           <div className="text-left text-sm">
             <p>info@amo.co.th</p>

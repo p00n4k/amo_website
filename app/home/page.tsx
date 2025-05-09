@@ -148,7 +148,7 @@ const Home = () => {
 
         </div>
       </div>
-      <div className="bg-gray-800 text-white py-16 px-6 md:px-20 flex flex-col md:flex-row items-center justify-between">
+      <div className="bg-gray-600 text-white py-16 px-6 md:px-20 flex flex-col md:flex-row items-center justify-between">
         {/* Left Text Section */}
         <div className="md:w-1/2 space-y-6">
           <h2 className="text-2xl md:text-3xl font-medium">

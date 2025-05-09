@@ -62,7 +62,7 @@
   }
 
   .quote_head {
-    @apply flex justify-center items-center  bg-gray-800;
+    @apply flex justify-center items-center  bg-gray-600;
   }
   .quote_head_content {
     @apply max-w-2xl mx-auto px-6 py-16 text-center;

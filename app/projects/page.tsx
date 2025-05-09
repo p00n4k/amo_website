@@ -85,7 +85,7 @@ const ProjectPage = () => {
             <div className="p-4">
               <div className="flex justify-between items-center">
                 <h2 className="text-lg font-semibold">Project Name</h2>
-                <a href="#" className="text-blue-600 text-sm">
+                <a href="/projectdetail" className="text-blue-600 text-sm">
                   Read Full
                 </a>
               </div>
