@@ -26,10 +26,10 @@ const AboutPage = () => {
 
 
 
-            <div className="bg-gray-100 p-6">
+            <div className="bg-gray-600 p-6">
                 <div className="flex justify-center mb-4">
                     <img
-                        src="/images/01_pd_focus_atlasconcorde.jpg"
+                        src="/images/image.png"
                         alt="Small Image"
                         className="w-[350px] h-[350px] object-cover rounded-lg"
                     />
@@ -37,13 +37,13 @@ const AboutPage = () => {
                         <div className="flex items-center space-x-4">
 
                             <div className="p-6">
-                                <div className="flex flex-col items-center space-y-4">
+                                <div className="flex flex-col items-start space-y-4">
                                     <div className="text-8xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-200 to-yellow-500">
                                         2010
                                     </div>
                                     <div>
-                                        <p className="text-2xl font-bold text-gray-800 mb-4">Established in</p>
-                                        <p className=" text-2xl font-bold text-gray-800 mb-4">by a group of experts in home decoration who has a comprehensive and deep knowledge in decoration materials, interior design and home items.</p>
+                                        <p className="text-2xl font-bold text-white mb-4">Established in</p>
+                                        <p className="text-2xl font-bold text-white mb-4">by a group of experts in home decoration who has a comprehensive and deep knowledge in decoration materials, interior design and home items.</p>
                                     </div>
                                 </div>
                             </div>
@@ -52,14 +52,17 @@ const AboutPage = () => {
                     </div>
 
                 </div>
-                <img
-                    src="/images/01_pd_focus_atlasconcorde.jpg"
-                    alt="Small Image"
-                    className="w-[350px] h-[350px] object-cover rounded-lg"
-                />
+                <div className="flex justify-center mb-6 ">
+                    <img
+                        src="/images/image (1).png"
+                        alt="Small Image"
+                        className=" object-coverrounded-full"
+                    />
+                </div>
+
                 <div className="flex flex-col md:flex-row items-center md:items-start justify-between space-x-6">
                     <div className="md:w-1/2 pl-4">
-                        <p className="text-2xl font-bold text-gray-800 mb-4">
+                        <p className="text-2xl font-bold text-white mb-4">
                             Amo Co.,Ltd. focuses on delivering the
                             <span className="text-yellow-500"> HIGHEST QUALITY </span>
                             of products and services to our customers as we have different types of products for all design both modern and classic. Apart from decoration and design, Amo is also a reliable counselor in selecting goods of design that meet the clients' requirements and budget.
@@ -67,9 +70,9 @@ const AboutPage = () => {
                     </div>
                     <div className="md:w-1/2 mb-4 md:mb-0">
                         <img
-                            src="/images/01_pd_focus_atlasconcorde.jpg"
+                            src="/images/image 29.png"
                             alt="Large Image"
-                            className="w-full h-[500px] object-cover rounded-lg"
+                            className="object-coverrounded-full"
                         />
                     </div>
 
