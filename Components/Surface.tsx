@@ -1,6 +1,6 @@
 // components/Surface.tsx
 import Image from 'next/image'
-
+import Link from 'next/link';
 const Surface = () => {
     return (
         <div className="mb-16">
@@ -38,10 +38,12 @@ const Surface = () => {
                         height={1000}
                         className="object-cover w-full h-full"
                     />
-                    <div className="absolute bottom-6 left-6 bg-white/20 text-white text-xl px-6 py-3 rounded-full backdrop-blur-sm flex items-center justify-between w-[220px]">
-                        Surface
-                        <span className="ml-2 text-white">↗</span>
-                    </div>
+                    <Link href="/productsearch">
+                        <div className="absolute bottom-6 left-6 bg-white/20 text-white text-xl px-6 py-3 rounded-full backdrop-blur-sm flex items-center justify-between w-[220px] cursor-pointer">
+                            Surface
+                            <span className="ml-2 text-white">↗</span>
+                        </div>
+                    </Link>
                 </div>
             </div>
         </div>
