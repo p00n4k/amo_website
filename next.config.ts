@@ -1,7 +1,8 @@
-import type { NextConfig } from "next";
+const nextConfig = {
+  output: 'export',
+  trailingSlash: true,   // ✅ เพิ่ม slash หลังทุก path
+  eslint: { ignoreDuringBuilds: true },
+  images: { unoptimized: true },
+}
 
-const nextConfig: NextConfig = {
-  /* config options here */
-};
-
-export default nextConfig;
+module.exports = nextConfig
