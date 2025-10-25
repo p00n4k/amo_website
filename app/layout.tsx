@@ -11,7 +11,7 @@ const Layout = ({ children }: { children: ReactNode }) => {
   const pathname = usePathname();
 
   // Pages that should not display Navbar / padding
-  const noNavbarPaths = ["/productsearch/", "/admin/"];
+  const noNavbarPaths = ["/productsearch", "/admin", "/projectdetail"];
   const hideNavbar = noNavbarPaths.includes(pathname);
 
   return (
