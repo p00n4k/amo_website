@@ -1,33 +1,31 @@
 "use client";
 
-import type { Metadata } from "next";
 import "./globals.css";
 import Navbar from "@/Components/Navbar";
-import type { ReactNode } from "react";
 import Footer from "@/Components/Footer";
 import { usePathname } from "next/navigation";
+import type { ReactNode } from "react";
 
 const Layout = ({ children }: { children: ReactNode }) => {
   const pathname = usePathname();
-
-  // Pages that should not display Navbar / padding
   const noNavbarPaths = ["/productsearch", "/admin", "/projectdetail"];
   const hideNavbar = noNavbarPaths.includes(pathname);
 
   return (
     <html>
-      <body>
-        <div className="relative">
-          <main className={hideNavbar ? "w-full" : "w-full pt-16"}>
-            {children}
-          </main>
+      <body className="bg-white">
+        {/* ✅ ปรับให้อยู่ใน flow ปกติ ไม่ใช้ absolute */}
+        {!hideNavbar && (
+          <div className="fixed top-0 left-0 w-full z-50 bg-transparent backdrop-blur-sm">
+            <Navbar />
+          </div>
+        )}
 
-          {!hideNavbar && (
-            <div className="absolute top-0 left-0 w-full z-10">
-              <Navbar />
-            </div>
-          )}
-        </div>
+        {/* ✅ ไม่เว้นขาวด้านบนอีกต่อไป */}
+        <main className={hideNavbar ? "w-full" : "w-full"}>
+          {children}
+        </main>
+
         <Footer />
       </body>
     </html>

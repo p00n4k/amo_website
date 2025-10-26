@@ -1,5 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
+import { LibraryBig } from "lucide-react";
+import Link from 'next/link';
 
 interface Project {
     project_id: number;
@@ -38,17 +40,16 @@ export default function ProjectDetail() {
     const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
     const [loading, setLoading] = useState(true);
     const [carouselIndex, setCarouselIndex] = useState(0);
+    const [selectedType, setSelectedType] = useState<string | null>(null);
+    const [dropdownOpen, setDropdownOpen] = useState(false);
 
-    // Fetch projects
     useEffect(() => {
         const fetchProjects = async () => {
             try {
                 const response = await fetch('http://localhost:3000/api/projects');
                 const data = await response.json();
                 setProjects(data);
-                if (data.length > 0) {
-                    setSelectedProject(data[0]);
-                }
+                if (data.length > 0) setSelectedProject(data[0]);
             } catch (error) {
                 console.error('Error fetching projects:', error);
             }
@@ -56,14 +57,11 @@ export default function ProjectDetail() {
         fetchProjects();
     }, []);
 
-    // Fetch project images and products when project is selected
     useEffect(() => {
         if (!selectedProject) return;
-
         const fetchData = async () => {
             setLoading(true);
             try {
-                // Fetch project images
                 const imagesResponse = await fetch('http://localhost:3000/api/project-images');
                 const allImages = await imagesResponse.json();
                 const filteredImages = allImages.filter(
@@ -71,7 +69,6 @@ export default function ProjectDetail() {
                 );
                 setProjectImages(filteredImages);
 
-                // Fetch products
                 const productsResponse = await fetch('http://localhost:3000/api/products');
                 const allProducts = await productsResponse.json();
                 const filteredProds = allProducts.filter(
@@ -85,17 +82,23 @@ export default function ProjectDetail() {
                 setLoading(false);
             }
         };
-
         fetchData();
     }, [selectedProject]);
 
-    const nextSlide = () => {
-        setCurrent((current + 1) % projectImages.length);
-    };
+    useEffect(() => {
+        if (!selectedType) {
+            setFilteredProducts(products.filter(p => p.project_id === selectedProject?.project_id));
+        } else {
+            setFilteredProducts(
+                products.filter(
+                    p => p.project_id === selectedProject?.project_id && p.type === selectedType
+                )
+            );
+        }
+    }, [selectedType, products, selectedProject]);
 
-    const prevSlide = () => {
-        setCurrent((current - 1 + projectImages.length) % projectImages.length);
-    };
+    const nextSlide = () => setCurrent((current + 1) % projectImages.length);
+    const prevSlide = () => setCurrent((current - 1 + projectImages.length) % projectImages.length);
 
     const formatDate = (dateString: string) => {
         const date = new Date(dateString);
@@ -110,68 +113,109 @@ export default function ProjectDetail() {
         );
     }
 
-    // Get 4 products at a time for carousel
     const carouselProducts = filteredProducts.slice(carouselIndex * 4, (carouselIndex * 4) + 4);
     const totalCarouselPages = Math.ceil(filteredProducts.length / 4);
+    const uniqueTypes = Array.from(new Set(products.map(p => p.type))).sort();
 
     return (
         <div className="bg-[#4a4a4a] min-h-screen text-white">
-            {/* Header with Navigation */}
-            <div className="flex items-center justify-between px-8 py-4 bg-[#3a3a3a]">
-                <div className="flex items-center space-x-6">
-                    <button className="px-4 py-2 bg-white text-black rounded-full text-sm font-medium">
-                        Back to Project
-                    </button>
-                    <span className="text-gray-300">Project</span>
-                    <span className="text-gray-300">Menu</span>
-                </div>
-                <div className="flex items-center space-x-4">
-                    <span className="text-2xl font-bold">Amo</span>
-                    <button className="px-1 py-1 bg-green-500 text-white text-xs rounded">TH</button>
-                    <button className="px-4 py-2 bg-orange-500 text-white rounded-full text-sm font-medium">
-                        Get a quote
-                    </button>
-                </div>
+
+            {/* ==================== HEADER + HERO ==================== */}
+            <div className="relative bg-gradient-to-b from-[#3e3e3e] to-[#4a4a4a] text-white">
+                {/* Header Bar */}
+                <header className="flex items-center justify-between px-8 py-4 bg-transparent">
+                    <div className="flex items-center space-x-8">
+                        <Link href="/projects">
+                            <button className="bg-white text-black font-semibold px-6 py-2 rounded-full shadow-md hover:bg-gray-100 transition">
+                                Back to Project
+                            </button>
+                        </Link>
+
+                        <nav className="flex items-center space-x-6 text-sm text-gray-300">
+                            <a href="/product" className="hover:text-white transition">Product</a>
+                            <a href="/home" className="hover:text-white transition">Home</a>
+                        </nav>
+                    </div>
+
+                    <div className="flex items-center space-x-4">
+                        <span className="text-3xl font-bold tracking-wide">Amo</span>
+                        <span className="bg-green-500 text-white text-xs font-semibold px-2 py-0.5 rounded-full">
+                            LINE
+                        </span>
+                        <button className="bg-orange-500 hover:bg-orange-600 transition text-white px-6 py-2 rounded-full font-medium">
+                            Get in touch
+                        </button>
+                    </div>
+                </header>
+
+                {/* Hero Section */}
+                <section className="px-12 pt-20 pb-16 text-left">
+                    <h1 className="text-6xl font-extrabold mb-6 leading-tight drop-shadow-md">About Project</h1>
+                    <h2 className="text-3xl font-semibold mb-4">{selectedProject.project_name}</h2>
+                    <div className="flex items-center text-gray-300 text-lg space-x-4">
+                        <span className="text-pink-500 text-2xl">📍</span>
+                        <span>Location</span>
+                        <span>•</span>
+                        <span>Updated : {formatDate(selectedProject.data_update)}</span>
+                    </div>
+                </section>
             </div>
 
             <div className="px-8 py-8">
-                {/* Title Section */}
-                <div className="mb-8">
-                    <h1 className="text-4xl font-bold mb-2">About Project</h1>
-                    <h2 className="text-xl mb-2">{selectedProject.project_name}</h2>
-                    <div className="flex items-center text-sm text-gray-300">
-                        <span>Updated: {formatDate(selectedProject.data_update)}</span>
-                    </div>
-                </div>
-
-                {/* 🖼️ Image Slider - Centered */}
+                {/* Image Slider */}
                 {projectImages.length > 0 ? (
-                    <div className="relative flex justify-center mb-12">
-                        <div className="overflow-hidden rounded-lg shadow-lg w-full max-w-2xl">
-                            <img
-                                src={projectImages[current]?.image_url}
-                                alt={`Slide ${current}`}
-                                className="w-full h-64 object-cover mx-auto"
-                            />
+                    <div
+                        className="relative w-full max-w-5xl mx-auto overflow-hidden mb-12 group"
+                        onMouseEnter={() => clearInterval((window as any).sliderTimer)}
+                        onMouseLeave={() => {
+                            (window as any).sliderTimer = setInterval(() => {
+                                setCurrent((prev) => (prev + 1) % projectImages.length);
+                            }, 3000);
+                        }}
+                    >
+                        <div
+                            className="flex transition-transform duration-700 ease-in-out"
+                            style={{
+                                transform: `translateX(-${current * (100 / 2.2)}%)`,
+                                width: `${projectImages.length * (100 / 2.2)}%`,
+                            }}
+                        >
+                            {projectImages.concat(projectImages[0]).map((img, idx) => (
+                                <div
+                                    key={idx}
+                                    className="flex-shrink-0 px-2"
+                                    style={{ flexBasis: '45%' }}
+                                >
+                                    <img
+                                        src={img.image_url}
+                                        alt={`Slide ${idx}`}
+                                        className="rounded-2xl shadow-lg w-full h-64 object-cover transition-transform duration-500 hover:scale-105"
+                                    />
+                                </div>
+                            ))}
                         </div>
 
-                        {/* Navigation Arrows */}
-                        {projectImages.length > 1 && (
-                            <>
-                                <button
-                                    onClick={prevSlide}
-                                    className="absolute left-[calc(50%-580px)] top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 w-10 h-10 rounded-full flex items-center justify-center hover:bg-opacity-75"
-                                >
-                                    <span className="text-white text-2xl">‹</span>
-                                </button>
-                                <button
-                                    onClick={nextSlide}
-                                    className="absolute right-[calc(50%-580px)] top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 w-10 h-10 rounded-full flex items-center justify-center hover:bg-opacity-75"
-                                >
-                                    <span className="text-white text-2xl">›</span>
-                                </button>
-                            </>
-                        )}
+                        <button
+                            onClick={prevSlide}
+                            className="absolute left-2 top-1/2 transform -translate-y-1/2 
+                            bg-black/0 text-white rounded-full w-10 h-10 
+                            flex items-center justify-center opacity-0 
+                            group-hover:opacity-100 group-hover:bg-black/40 
+                            transition duration-300 hover:bg-black/60"
+                        >
+                            ‹
+                        </button>
+
+                        <button
+                            onClick={nextSlide}
+                            className="absolute right-2 top-1/2 transform -translate-y-1/2 
+                            bg-black/0 text-white rounded-full w-10 h-10 
+                            flex items-center justify-center opacity-0 
+                            group-hover:opacity-100 group-hover:bg-black/40 
+                            transition duration-300 hover:bg-black/60"
+                        >
+                            ›
+                        </button>
                     </div>
                 ) : (
                     <div className="w-full max-w-2xl mx-auto h-64 bg-gray-700 rounded-lg flex items-center justify-center mb-12">
@@ -179,66 +223,103 @@ export default function ProjectDetail() {
                     </div>
                 )}
 
-                {/* Take a look here Section */}
+                {/* Carousel Section */}
                 <div className="mb-12">
                     <h3 className="text-center text-xl mb-6">Take a look here</h3>
-
-                    {/* Product Carousel */}
                     <div className="flex justify-center space-x-4 mb-4">
-                        {carouselProducts.map((product) => (
-                            <div
+                        {carouselProducts.map(product => (
+                            <a
                                 key={product.collection_id}
-                                className="relative w-32 h-20 rounded-lg overflow-hidden shadow-lg cursor-pointer"
+                                href={product.collection_link}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="relative w-32 h-20 rounded-lg overflow-hidden shadow-lg cursor-pointer block"
                             >
                                 <img
                                     src={product.image}
                                     alt={product.type}
-                                    className="w-full h-full object-cover"
+                                    className="w-full h-full object-cover brightness-50 transition duration-300 hover:brightness-100"
                                 />
-                                <div className="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center">
-                                    <span className="text-white text-xs font-bold text-center px-1">
+                                <div className="absolute inset-0 flex items-center justify-center">
+                                    <span className="text-white text-xs font-bold text-center px-1 drop-shadow-md">
                                         {product.type.toUpperCase()}
                                     </span>
                                 </div>
-                            </div>
+                            </a>
                         ))}
                     </div>
 
-                    {/* Carousel Dots */}
                     {totalCarouselPages > 1 && (
                         <div className="flex justify-center space-x-2">
                             {Array.from({ length: totalCarouselPages }).map((_, idx) => (
                                 <button
                                     key={idx}
                                     onClick={() => setCarouselIndex(idx)}
-                                    className={`w-3 h-3 rounded-full border-2 border-orange-500 ${idx === carouselIndex ? 'bg-orange-500' : 'bg-transparent'
-                                        }`}
+                                    className={`w-3 h-3 rounded-full border-2 border-orange-500 ${idx === carouselIndex ? 'bg-orange-500' : 'bg-transparent'}`}
                                 />
                             ))}
                         </div>
                     )}
                 </div>
 
-                {/* Product Overview Table */}
+                {/* Product Overview */}
                 <div className="bg-[#3a3a3a] rounded-2xl p-6">
                     <div className="flex items-center justify-between mb-6">
                         <div className="flex items-center space-x-3">
                             <div className="bg-orange-500 p-2 rounded">
-                                <span className="text-white text-xl">🎨</span>
+                                <LibraryBig className="text-white w-5 h-5" />
                             </div>
                             <h2 className="text-xl font-semibold">Product Overview</h2>
                         </div>
-                        <div className="flex space-x-2">
-                            <button className="px-4 py-1 bg-white text-orange-500 rounded-full text-sm font-medium hover:bg-gray-100">
-                                All Category
-                            </button>
-                            <button className="px-4 py-1 bg-white text-orange-500 rounded-full text-sm font-medium hover:bg-gray-100">
-                                Clear All
+
+                        {/* Dropdown Filter */}
+                        <div className="flex items-center gap-3 relative">
+                            <div className="relative">
+                                <button
+                                    onClick={() => setDropdownOpen(!dropdownOpen)}
+                                    className="px-4 py-2 border border-orange-500 text-orange-500 rounded-full flex items-center gap-2 hover:bg-orange-500 hover:text-white transition bg-white"
+                                >
+                                    {selectedType ? selectedType : 'Select Type'}
+                                    <span className={`transition-transform ${dropdownOpen ? 'rotate-180' : ''}`}>▲</span>
+                                </button>
+
+                                {dropdownOpen && (
+                                    <div className="absolute right-0 mt-2 w-48 bg-white text-black rounded-lg shadow-lg z-10 max-h-60 overflow-y-auto">
+                                        <button
+                                            onClick={() => {
+                                                setSelectedType(null);
+                                                setDropdownOpen(false);
+                                            }}
+                                            className="block w-full text-left px-4 py-2 hover:bg-orange-100"
+                                        >
+                                            All Category
+                                        </button>
+                                        {uniqueTypes.map(type => (
+                                            <button
+                                                key={type}
+                                                onClick={() => {
+                                                    setSelectedType(type);
+                                                    setDropdownOpen(false);
+                                                }}
+                                                className="block w-full text-left px-4 py-2 hover:bg-orange-100"
+                                            >
+                                                {type}
+                                            </button>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+
+                            <button
+                                onClick={() => setSelectedType(null)}
+                                className="px-4 py-2 border border-orange-500 text-orange-500 rounded-full flex items-center gap-2 hover:bg-orange-500 hover:text-white transition bg-white"
+                            >
+                                Clear All ✕
                             </button>
                         </div>
                     </div>
 
-                    {/* Table */}
+                    {/* Product Table */}
                     {loading ? (
                         <div className="text-center py-8">
                             <p>Loading products...</p>
@@ -255,12 +336,16 @@ export default function ProjectDetail() {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {filteredProducts.map((product) => (
-                                        <tr key={product.collection_id} className="border-b border-gray-700">
+                                    {filteredProducts.map(product => (
+                                        <tr
+                                            key={product.collection_id}
+                                            onClick={() => window.open(product.collection_link, '_blank')}
+                                            className="border-b border-gray-700 hover:bg-gray-700 transition cursor-pointer"
+                                        >
                                             <td className="px-4 py-3">{product.type}</td>
                                             <td className="px-4 py-3">{product.brandname}</td>
                                             <td className="px-4 py-3">{product.detail}</td>
-                                            <td className="px-4 py-3">{product.main_type}</td>
+                                            <td className="px-4 py-3">{product.type}</td>
                                         </tr>
                                     ))}
                                 </tbody>
@@ -268,7 +353,7 @@ export default function ProjectDetail() {
                         </div>
                     ) : (
                         <div className="text-center py-8">
-                            <p className="text-gray-400">No products found for this project</p>
+                            <p className="text-gray-400">No products found</p>
                         </div>
                     )}
                 </div>
