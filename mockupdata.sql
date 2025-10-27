@@ -14,7 +14,15 @@ VALUES
 INSERT INTO Project (project_name, data_update)
 VALUES
 ('Project Pavilion 2025', '2025-09-01'),
-('Project Lifestyle Space', '2025-09-15');
+('Project Lifestyle Space', '2025-09-15'),
+('Project Urban Living 2025', 'Residential', '2025-10-01'),
+('Project Modern Office 2025', 'Commercial', '2025-10-05'),
+('Project Resort Serenity 2025', 'Commercial', '2025-10-10'),
+('Project Villa Horizon 2025', 'Residential', '2025-10-15'),
+('Project Art Space 2026', 'Commercial', '2026-01-05'),
+('Project Zen Residence 2026', 'Residential', '2026-02-12'),
+('Project Skyline Tower 2026', 'Commercial', '2026-03-01'),
+('Project Green Habitat 2026', 'Residential', '2026-04-22');
 
 -- ============================================
 -- 🧩 ProductCollection (8 ชิ้น — Surface 4, Furniture 4)
@@ -52,4 +60,20 @@ VALUES
 (1, '/images/product/productfocus1.jpg'),
 (1, '/images/product/productfocus1.jpg'),
 (2, '/images/product/productfocus1.jpg'),
-(2, '/images/product/productfocus1.jpg');
+(2, '/images/product/productfocus1.jpg'),
+(3, '/images/product/productfocus1.jpg'),
+(3, '/images/product/productfocus1.jpg'),
+(4, '/images/product/productfocus1.jpg'),
+(4, '/images/product/productfocus1.jpg'),
+(5, '/images/product/productfocus1.jpg'),
+(5, '/images/product/productfocus1.jpg'),
+(6, '/images/product/productfocus1.jpg'),
+(6, '/images/product/productfocus1.jpg'),
+(7, '/images/product/productfocus1.jpg'),
+(7, '/images/product/productfocus1.jpg'),
+(8, '/images/product/productfocus1.jpg'),
+(8, '/images/product/productfocus1.jpg'),
+(9, '/images/product/productfocus1.jpg'),
+(9, '/images/product/productfocus1.jpg'),
+(10, '/images/product/productfocus1.jpg'),
+(10, '/images/product/productfocus1.jpg');

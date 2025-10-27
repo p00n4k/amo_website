@@ -1,10 +1,7 @@
-// ============================================
-// 📁 File: app/admin/page.tsx
-// ============================================
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Upload, Plus, Edit2, Trash2, Save, X, LogOut, Search, Image as ImageIcon, Star } from 'lucide-react';
+import { Upload, Plus, Edit2, Trash2, Save, X, LogOut, Search, Image as ImageIcon, Star, MoveUp, MoveDown, Home } from 'lucide-react';
 
 // Types
 interface Brand {
@@ -37,16 +34,21 @@ interface Product {
     is_focus: boolean;
 }
 
-interface FocusRound {
-    round_id: number;
-    round_name: string;
-    update_date: string;
-    note: string;
+interface HomeSlider {
+    slider_id: number;
+    image_url: string;
+    display_order: number;
+    is_active: boolean;
 }
 
-interface FocusSelection {
-    surface_products: number[]; // collection_ids
-    furniture_products: number[]; // collection_ids
+interface HomepageFocus {
+    focus_id: number;
+    brand_name: string;
+    brand_logo: string;
+    description: string;
+    made_in: string;
+    brand_link: string;
+    is_active: boolean;
 }
 
 export default function AdminDashboard() {
@@ -58,15 +60,8 @@ export default function AdminDashboard() {
     const [brands, setBrands] = useState<Brand[]>([]);
     const [projects, setProjects] = useState<Project[]>([]);
     const [products, setProducts] = useState<Product[]>([]);
-    const [focusRounds, setFocusRounds] = useState<FocusRound[]>([]);
-
-    // State for Product Focus
-    const [focusSelection, setFocusSelection] = useState<FocusSelection>({
-        surface_products: [],
-        furniture_products: []
-    });
-    const [focusSearchSurface, setFocusSearchSurface] = useState('');
-    const [focusSearchFurniture, setFocusSearchFurniture] = useState('');
+    const [homeSliders, setHomeSliders] = useState<HomeSlider[]>([]);
+    const [homepageFocus, setHomepageFocus] = useState<HomepageFocus | null>(null);
 
     const [showForm, setShowForm] = useState(false);
     const [editingItem, setEditingItem] = useState<any>(null);
@@ -86,81 +81,31 @@ export default function AdminDashboard() {
                 case 'brands': endpoint = '/api/brands'; break;
                 case 'projects': endpoint = '/api/projects'; break;
                 case 'products': endpoint = '/api/products'; break;
-                case 'focus': endpoint = '/api/focus-rounds'; break;
-                case 'productfocus':
-                    endpoint = '/api/products';
-                    break;
+                case 'homeslider': endpoint = '/api/home-slider'; break;
+                case 'homefocus': endpoint = '/api/homepage-focus'; break;
                 default:
                     setLoading(false);
                     return;
             }
 
-            if (!endpoint) {
-                setLoading(false);
-                return;
-            }
-
-            console.log('Fetching from:', endpoint);
-
-            const response = await fetch(endpoint, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-            });
-
-            console.log('Response status:', response.status);
-
+            const response = await fetch(endpoint);
             if (!response.ok) {
-                console.error(`HTTP error! status: ${response.status}`);
-                switch (activeTab) {
-                    case 'brands': setBrands([]); break;
-                    case 'projects': setProjects([]); break;
-                    case 'products':
-                    case 'productfocus':
-                        setProducts([]);
-                        break;
-                    case 'focus': setFocusRounds([]); break;
-                }
-                setLoading(false);
-                return;
+                throw new Error(`HTTP error! status: ${response.status}`);
             }
 
             const data = await response.json();
-            console.log('Data received:', data);
 
             switch (activeTab) {
                 case 'brands': setBrands(Array.isArray(data) ? data : []); break;
                 case 'projects': setProjects(Array.isArray(data) ? data : []); break;
-                case 'products':
-                case 'productfocus':
-                    setProducts(Array.isArray(data) ? data : []);
-                    // Populate focus selection from is_focus field
-                    if (activeTab === 'productfocus' && Array.isArray(data)) {
-                        const focusProducts = data.filter((p: Product) => p.is_focus);
-                        setFocusSelection({
-                            surface_products: focusProducts
-                                .filter((p: Product) => p.main_type === 'Surface')
-                                .map((p: Product) => p.collection_id),
-                            furniture_products: focusProducts
-                                .filter((p: Product) => p.main_type === 'Furniture')
-                                .map((p: Product) => p.collection_id)
-                        });
-                    }
+                case 'products': setProducts(Array.isArray(data) ? data : []); break;
+                case 'homeslider': setHomeSliders(Array.isArray(data) ? data : []); break;
+                case 'homefocus':
+                    setHomepageFocus(Array.isArray(data) && data.length > 0 ? data[0] : null);
                     break;
-                case 'focus': setFocusRounds(Array.isArray(data) ? data : []); break;
             }
         } catch (error) {
             console.error('Error fetching data:', error);
-            switch (activeTab) {
-                case 'brands': setBrands([]); break;
-                case 'projects': setProjects([]); break;
-                case 'products':
-                case 'productfocus':
-                    setProducts([]);
-                    break;
-                case 'focus': setFocusRounds([]); break;
-            }
         }
         setLoading(false);
     };
@@ -194,749 +139,374 @@ export default function AdminDashboard() {
         }
     };
 
-    const handleCreate = async (formData: any) => {
+    // Home Slider Management
+    const handleAddSlider = async (imageUrl: string) => {
         setLoading(true);
         try {
-            let endpoint = '';
-            switch (activeTab) {
-                case 'brands': endpoint = '/api/brands'; break;
-                case 'projects': endpoint = '/api/projects'; break;
-                case 'products': endpoint = '/api/products'; break;
-                case 'focus': endpoint = '/api/focus-rounds'; break;
-            }
-
-            const response = await fetch(endpoint, {
+            const response = await fetch('/api/home-slider', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(formData)
+                body: JSON.stringify({ image_url: imageUrl })
             });
 
             if (response.ok) {
-                alert('เพิ่มข้อมูลสำเร็จ!');
-                setShowForm(false);
-                setEditingItem(null);
+                alert('เพิ่มรูปภาพสำเร็จ!');
                 fetchData();
             } else {
-                alert('เกิดข้อผิดพลาดในการเพิ่มข้อมูล');
+                alert('เกิดข้อผิดพลาดในการเพิ่มรูปภาพ');
             }
         } catch (error) {
-            console.error('Error creating:', error);
+            console.error('Error adding slider:', error);
             alert('เกิดข้อผิดพลาด');
         }
         setLoading(false);
     };
 
-    const handleUpdate = async (formData: any) => {
+    const handleDeleteSlider = async (sliderId: number) => {
+        if (!confirm('คุณแน่ใจหรือไม่ที่จะลบรูปภาพนี้? (ต้องเหลืออย่างน้อย 3 รูป)')) return;
+
         setLoading(true);
         try {
-            let endpoint = '';
-            let idKey = '';
+            const response = await fetch(`/api/home-slider/${sliderId}`, {
+                method: 'DELETE'
+            });
 
-            switch (activeTab) {
-                case 'brands':
-                    endpoint = '/api/brands';
-                    idKey = 'brand_id';
-                    break;
-                case 'projects':
-                    endpoint = '/api/projects';
-                    idKey = 'project_id';
-                    break;
-                case 'products':
-                    endpoint = '/api/products';
-                    idKey = 'collection_id';
-                    break;
-                case 'focus':
-                    endpoint = '/api/focus-rounds';
-                    idKey = 'round_id';
-                    break;
+            if (response.ok) {
+                alert('ลบรูปภาพสำเร็จ!');
+                fetchData();
+            } else {
+                const error = await response.json();
+                alert(error.error || 'เกิดข้อผิดพลาดในการลบรูปภาพ');
             }
+        } catch (error) {
+            console.error('Error deleting slider:', error);
+            alert('เกิดข้อผิดพลาด');
+        }
+        setLoading(false);
+    };
 
-            const response = await fetch(`${endpoint}/${formData[idKey]}`, {
+    const handleMoveSlider = async (index: number, direction: 'up' | 'down') => {
+        const newSliders = [...homeSliders];
+        const targetIndex = direction === 'up' ? index - 1 : index + 1;
+
+        if (targetIndex < 0 || targetIndex >= newSliders.length) return;
+
+        // Swap
+        [newSliders[index], newSliders[targetIndex]] = [newSliders[targetIndex], newSliders[index]];
+
+        // Update display_order
+        const updatedSliders = newSliders.map((slider, idx) => ({
+            slider_id: slider.slider_id,
+            display_order: idx + 1
+        }));
+
+        setLoading(true);
+        try {
+            const response = await fetch('/api/home-slider', {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(formData)
+                body: JSON.stringify({ sliders: updatedSliders })
             });
 
             if (response.ok) {
-                alert('แก้ไขข้อมูลสำเร็จ!');
+                fetchData();
+            } else {
+                alert('เกิดข้อผิดพลาดในการเปลี่ยนลำดับ');
+            }
+        } catch (error) {
+            console.error('Error moving slider:', error);
+            alert('เกิดข้อผิดพลาด');
+        }
+        setLoading(false);
+    };
+
+    // Homepage Focus Management
+    const handleSaveHomepageFocus = async (focusData: Partial<HomepageFocus>) => {
+        setLoading(true);
+        try {
+            const method = homepageFocus ? 'PUT' : 'POST';
+            const body = homepageFocus
+                ? { ...focusData, focus_id: homepageFocus.focus_id }
+                : focusData;
+
+            const response = await fetch('/api/homepage-focus', {
+                method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            });
+
+            if (response.ok) {
+                alert('บันทึกข้อมูล Product Focus สำเร็จ!');
+                fetchData();
                 setShowForm(false);
-                setEditingItem(null);
-                fetchData();
             } else {
-                alert('เกิดข้อผิดพลาดในการแก้ไขข้อมูล');
+                alert('เกิดข้อผิดพลาดในการบันทึกข้อมูล');
             }
         } catch (error) {
-            console.error('Error updating:', error);
+            console.error('Error saving homepage focus:', error);
             alert('เกิดข้อผิดพลาด');
         }
         setLoading(false);
     };
 
-    const handleDelete = async (id: number) => {
-        if (!confirm('คุณแน่ใจหรือไม่ที่จะลบข้อมูลนี้?')) return;
-
-        setLoading(true);
-        try {
-            let endpoint = '';
-            switch (activeTab) {
-                case 'brands': endpoint = `/api/brands/${id}`; break;
-                case 'projects': endpoint = `/api/projects/${id}`; break;
-                case 'products': endpoint = `/api/products/${id}`; break;
-                case 'focus': endpoint = `/api/focus-rounds/${id}`; break;
-            }
-
-            const response = await fetch(endpoint, { method: 'DELETE' });
-
-            if (response.ok) {
-                alert('ลบข้อมูลสำเร็จ!');
-                fetchData();
-            } else {
-                alert('เกิดข้อผิดพลาดในการลบข้อมูล');
-            }
-        } catch (error) {
-            console.error('Error deleting:', error);
-            alert('เกิดข้อผิดพลาด');
-        }
-        setLoading(false);
-    };
-
-    // Handle Product Focus Selection
-    const handleToggleProduct = (collectionId: number, type: 'surface' | 'furniture') => {
-        const key = type === 'surface' ? 'surface_products' : 'furniture_products';
-        const currentSelection = focusSelection[key];
-        const maxSelection = 4;
-
-        if (currentSelection.includes(collectionId)) {
-            // Remove from selection
-            setFocusSelection({
-                ...focusSelection,
-                [key]: currentSelection.filter(id => id !== collectionId)
-            });
-        } else {
-            // Add to selection (if not exceeding max)
-            if (currentSelection.length < maxSelection) {
-                setFocusSelection({
-                    ...focusSelection,
-                    [key]: [...currentSelection, collectionId]
-                });
-            } else {
-                alert(`สามารถเลือกได้สูงสุด ${maxSelection} รายการเท่านั้น`);
-            }
-        }
-    };
-
-    const handleSaveFocusSelection = async () => {
-        if (focusSelection.surface_products.length !== 4) {
-            alert('กรุณาเลือก Surface ให้ครบ 4 รายการ');
-            return;
-        }
-        if (focusSelection.furniture_products.length !== 4) {
-            alert('กรุณาเลือก Furniture ให้ครบ 4 รายการ');
-            return;
-        }
-
-        setLoading(true);
-        try {
-            const allSelectedIds = [
-                ...focusSelection.surface_products,
-                ...focusSelection.furniture_products
-            ];
-
-            // Update all products: set is_focus = true for selected, false for others
-            const updatePromises = products.map(async (product) => {
-                const shouldBeFocus = allSelectedIds.includes(product.collection_id);
-
-                // Only update if the focus status is changing
-                if (product.is_focus !== shouldBeFocus) {
-                    const response = await fetch(`/api/products/${product.collection_id}`, {
-                        method: 'PUT',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            ...product,
-                            is_focus: shouldBeFocus
-                        })
-                    });
-
-                    if (!response.ok) {
-                        throw new Error(`Failed to update product ${product.collection_id}`);
-                    }
-                }
-            });
-
-            await Promise.all(updatePromises);
-
-            alert('บันทึก Product Focus สำเร็จ!');
-            fetchData(); // Refresh data
-        } catch (error) {
-            console.error('Error saving focus selection:', error);
-            alert('เกิดข้อผิดพลาดในการบันทึก');
-        }
-        setLoading(false);
-    };
-
-    // Brand Form Component
-    const BrandForm = () => {
-        const [formData, setFormData] = useState({
-            brand_id: editingItem?.brand_id || 0,
-            brandname: editingItem?.brandname || '',
-            main_type: editingItem?.main_type || '',
-            type: editingItem?.type || '',
-            image: editingItem?.image || ''
-        });
-
-        const handleSubmit = async (e: React.FormEvent) => {
-            e.preventDefault();
-            if (editingItem) {
-                await handleUpdate(formData);
-            } else {
-                await handleCreate(formData);
-            }
-        };
+    // Home Slider UI Component
+    const HomeSliderManagement = () => {
+        const [newImageUrl, setNewImageUrl] = useState('');
 
         return (
-            <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
-                <div className="flex justify-between items-center mb-6">
-                    <h2 className="text-2xl font-bold text-gray-800">
-                        {editingItem ? '✏️ แก้ไขแบรนด์' : '➕ เพิ่มแบรนด์ใหม่'}
-                    </h2>
-                    <button onClick={() => { setShowForm(false); setEditingItem(null); }} className="text-gray-500 hover:text-gray-700">
-                        <X size={24} />
-                    </button>
+            <div className="space-y-6">
+                {/* Header */}
+                <div className="bg-white rounded-xl shadow-lg p-6">
+                    <div className="flex items-center gap-3 mb-4">
+                        <Home className="text-blue-600" size={28} />
+                        <div>
+                            <h2 className="text-2xl font-bold text-gray-800">จัดการสไลด์รูปภาพหน้า Home</h2>
+                            <p className="text-sm text-gray-600">ต้องมีรูปภาพอย่างน้อย 3 รูป</p>
+                        </div>
+                    </div>
+
+                    {/* Add New Slider */}
+                    <div className="flex gap-2 mb-4">
+                        <input
+                            type="text"
+                            value={newImageUrl}
+                            onChange={(e) => setNewImageUrl(e.target.value)}
+                            placeholder="ใส่ URL รูปภาพหรือคลิกอัปโหลด"
+                            className="flex-1 border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        />
+                        <label className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-3 rounded-lg cursor-pointer flex items-center gap-2 transition">
+                            <Upload size={20} />
+                            อัปโหลด
+                            <input
+                                type="file"
+                                accept="image/*"
+                                className="hidden"
+                                onChange={async (e) => {
+                                    const file = e.target.files?.[0];
+                                    if (file) {
+                                        const url = await handleImageUpload(file);
+                                        if (url) setNewImageUrl(url);
+                                    }
+                                }}
+                            />
+                        </label>
+                        <button
+                            onClick={() => {
+                                if (newImageUrl) {
+                                    handleAddSlider(newImageUrl);
+                                    setNewImageUrl('');
+                                } else {
+                                    alert('กรุณาใส่ URL รูปภาพ');
+                                }
+                            }}
+                            disabled={loading}
+                            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition disabled:bg-gray-400 flex items-center gap-2"
+                        >
+                            <Plus size={20} />
+                            เพิ่มรูปภาพ
+                        </button>
+                    </div>
                 </div>
 
-                <form onSubmit={handleSubmit} className="space-y-4">
+                {/* Slider List */}
+                <div className="bg-white rounded-xl shadow-lg p-6">
+                    <h3 className="text-lg font-bold text-gray-800 mb-4">
+                        รูปภาพปัจจุบัน ({homeSliders.length} รูป)
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {homeSliders.map((slider, index) => (
+                            <div key={slider.slider_id} className="border rounded-lg p-4 bg-gray-50">
+                                <div className="relative aspect-video mb-3">
+                                    <img
+                                        src={slider.image_url}
+                                        alt={`Slide ${index + 1}`}
+                                        className="w-full h-full object-cover rounded-lg"
+                                    />
+                                    <div className="absolute top-2 left-2 bg-blue-600 text-white px-3 py-1 rounded-full text-sm font-medium">
+                                        ลำดับที่ {slider.display_order}
+                                    </div>
+                                </div>
+                                <div className="flex gap-2">
+                                    <button
+                                        onClick={() => handleMoveSlider(index, 'up')}
+                                        disabled={index === 0 || loading}
+                                        className="flex-1 bg-gray-600 hover:bg-gray-700 text-white py-2 rounded-lg disabled:bg-gray-300 flex items-center justify-center gap-1 transition"
+                                    >
+                                        <MoveUp size={16} />
+                                        ขึ้น
+                                    </button>
+                                    <button
+                                        onClick={() => handleMoveSlider(index, 'down')}
+                                        disabled={index === homeSliders.length - 1 || loading}
+                                        className="flex-1 bg-gray-600 hover:bg-gray-700 text-white py-2 rounded-lg disabled:bg-gray-300 flex items-center justify-center gap-1 transition"
+                                    >
+                                        <MoveDown size={16} />
+                                        ลง
+                                    </button>
+                                    <button
+                                        onClick={() => handleDeleteSlider(slider.slider_id)}
+                                        disabled={homeSliders.length <= 3 || loading}
+                                        className="flex-1 bg-red-600 hover:bg-red-700 text-white py-2 rounded-lg disabled:bg-gray-300 flex items-center justify-center gap-1 transition"
+                                    >
+                                        <Trash2 size={16} />
+                                        ลบ
+                                    </button>
+                                </div>
+                                {homeSliders.length <= 3 && (
+                                    <p className="text-xs text-red-600 mt-2 text-center">
+                                        ต้องมีรูปอย่างน้อย 3 รูป
+                                    </p>
+                                )}
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </div>
+        );
+    };
+
+    // Homepage Focus UI Component
+    const HomepageFocusManagement = () => {
+        const [formData, setFormData] = useState({
+            brand_name: homepageFocus?.brand_name || '',
+            brand_logo: homepageFocus?.brand_logo || '',
+            description: homepageFocus?.description || '',
+            made_in: homepageFocus?.made_in || '',
+            brand_link: homepageFocus?.brand_link || ''
+        });
+
+        useEffect(() => {
+            if (homepageFocus) {
+                setFormData({
+                    brand_name: homepageFocus.brand_name || '',
+                    brand_logo: homepageFocus.brand_logo || '',
+                    description: homepageFocus.description || '',
+                    made_in: homepageFocus.made_in || '',
+                    brand_link: homepageFocus.brand_link || ''
+                });
+            }
+        }, [homepageFocus]);
+
+        return (
+            <div className="bg-white rounded-xl shadow-lg p-6">
+                <div className="flex items-center gap-3 mb-6">
+                    <Star className="text-yellow-500" size={28} />
+                    <div>
+                        <h2 className="text-2xl font-bold text-gray-800">Product Focus - หน้า Home</h2>
+                        <p className="text-sm text-gray-600">แก้ไขข้อมูลแบรนด์ที่แสดงในหน้า Homepage</p>
+                    </div>
+                </div>
+
+                <div className="space-y-4">
                     <div>
                         <label className="block text-sm font-medium mb-2 text-gray-700">ชื่อแบรนด์</label>
-                        <input type="text" required value={formData.brandname} onChange={(e) => setFormData({ ...formData, brandname: e.target.value })} className="w-full border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+                        <input
+                            type="text"
+                            value={formData.brand_name}
+                            onChange={(e) => setFormData({ ...formData, brand_name: e.target.value })}
+                            placeholder="เช่น atlas concorde"
+                            className="w-full border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        />
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium mb-2 text-gray-700">ประเภทหลัก</label>
-                        <select required value={formData.main_type} onChange={(e) => setFormData({ ...formData, main_type: e.target.value })} className="w-full border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                            <option value="">เลือกประเภทหลัก</option>
-                            <option value="Surface">Surface</option>
-                            <option value="Furniture">Furniture</option>
-                        </select>
+                        <label className="block text-sm font-medium mb-2 text-gray-700">คำอธิบาย</label>
+                        <textarea
+                            value={formData.description}
+                            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                            placeholder="A system of indoor & outdoor surfaces..."
+                            rows={3}
+                            className="w-full border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        />
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium mb-2 text-gray-700">ประเภทย่อย</label>
-                        <input type="text" required value={formData.type} onChange={(e) => setFormData({ ...formData, type: e.target.value })} className="w-full border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+                        <label className="block text-sm font-medium mb-2 text-gray-700">ผลิตจาก (Made in)</label>
+                        <input
+                            type="text"
+                            value={formData.made_in}
+                            onChange={(e) => setFormData({ ...formData, made_in: e.target.value })}
+                            placeholder="เช่น Italy"
+                            className="w-full border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        />
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium mb-2 text-gray-700">รูปภาพ (URL)</label>
+                        <label className="block text-sm font-medium mb-2 text-gray-700">ลิงก์แบรนด์</label>
+                        <input
+                            type="url"
+                            value={formData.brand_link}
+                            onChange={(e) => setFormData({ ...formData, brand_link: e.target.value })}
+                            placeholder="https://www.example.com"
+                            className="w-full border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        />
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium mb-2 text-gray-700">โลโก้แบรนด์ (URL) - ถ้ามี</label>
                         <div className="flex gap-2">
-                            <input type="text" value={formData.image} onChange={(e) => setFormData({ ...formData, image: e.target.value })} className="flex-1 border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="https://..." />
-                            <label className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-3 rounded-lg cursor-pointer flex items-center gap-2 transition">
-                                <Upload size={20} />
-                                อัปโหลด
-                                <input type="file" accept="image/*" className="hidden" onChange={async (e) => {
-                                    const file = e.target.files?.[0];
-                                    if (file) {
-                                        const url = await handleImageUpload(file);
-                                        if (url) setFormData({ ...formData, image: url });
-                                    }
-                                }} />
-                            </label>
-                        </div>
-                        {formData.image && (
-                            <div className="mt-3">
-                                <img src={formData.image} alt="Preview" className="w-32 h-32 object-cover rounded-lg shadow" />
-                            </div>
-                        )}
-                    </div>
-
-                    <div className="flex gap-3 pt-4">
-                        <button type="submit" disabled={loading} className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-medium transition disabled:bg-gray-400 flex items-center justify-center gap-2">
-                            <Save size={20} />
-                            {loading ? 'กำลังบันทึก...' : 'บันทึกข้อมูล'}
-                        </button>
-                        <button type="button" onClick={() => { setShowForm(false); setEditingItem(null); }} className="px-6 bg-gray-500 hover:bg-gray-600 text-white py-3 rounded-lg font-medium transition">
-                            ยกเลิก
-                        </button>
-                    </div>
-                </form>
-            </div>
-        );
-    };
-
-    // Project Form Component
-    const ProjectForm = () => {
-        const [formData, setFormData] = useState({
-            project_id: editingItem?.project_id || 0,
-            project_name: editingItem?.project_name || '',
-            data_update: editingItem?.data_update || new Date().toISOString().split('T')[0],
-            project_category: editingItem?.project_category || 'Residential'
-        });
-
-        const handleSubmit = async (e: React.FormEvent) => {
-            e.preventDefault();
-            if (editingItem) {
-                await handleUpdate(formData);
-            } else {
-                await handleCreate(formData);
-            }
-        };
-
-        return (
-            <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
-                <div className="flex justify-between items-center mb-6">
-                    <h2 className="text-2xl font-bold text-gray-800">
-                        {editingItem ? '✏️ แก้ไขโปรเจกต์' : '➕ เพิ่มโปรเจกต์ใหม่'}
-                    </h2>
-                    <button onClick={() => { setShowForm(false); setEditingItem(null); }} className="text-gray-500 hover:text-gray-700">
-                        <X size={24} />
-                    </button>
-                </div>
-
-                <form onSubmit={handleSubmit} className="space-y-4">
-                    <div>
-                        <label className="block text-sm font-medium mb-2 text-gray-700">ชื่อโปรเจกต์</label>
-                        <input type="text" required value={formData.project_name} onChange={(e) => setFormData({ ...formData, project_name: e.target.value })} className="w-full border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
-                    </div>
-
-                    <div>
-                        <label className="block text-sm font-medium mb-2 text-gray-700">ประเภทโปรเจกต์</label>
-                        <select required value={formData.project_category} onChange={(e) => setFormData({ ...formData, project_category: e.target.value as 'Residential' | 'Commercial' })} className="w-full border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                            <option value="Residential">Residential (บ้านพักอาศัย)</option>
-                            <option value="Commercial">Commercial (พาณิชย์)</option>
-                        </select>
-                    </div>
-
-                    <div>
-                        <label className="block text-sm font-medium mb-2 text-gray-700">วันที่อัปเดต</label>
-                        <input type="date" required value={formData.data_update} onChange={(e) => setFormData({ ...formData, data_update: e.target.value })} className="w-full border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
-                    </div>
-
-                    <div className="flex gap-3 pt-4">
-                        <button type="submit" disabled={loading} className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-medium transition disabled:bg-gray-400 flex items-center justify-center gap-2">
-                            <Save size={20} />
-                            {loading ? 'กำลังบันทึก...' : 'บันทึกข้อมูล'}
-                        </button>
-                        <button type="button" onClick={() => { setShowForm(false); setEditingItem(null); }} className="px-6 bg-gray-500 hover:bg-gray-600 text-white py-3 rounded-lg font-medium transition">
-                            ยกเลิก
-                        </button>
-                    </div>
-                </form>
-            </div>
-        );
-    };
-
-    // Product Form Component
-    const ProductForm = () => {
-        const [formData, setFormData] = useState({
-            collection_id: editingItem?.collection_id || 0,
-            brand_id: editingItem?.brand_id || 0,
-            project_id: editingItem?.project_id || 0,
-            main_type: editingItem?.main_type || '',
-            type: editingItem?.type || '',
-            detail: editingItem?.detail || '',
-            image: editingItem?.image || '',
-            collection_link: editingItem?.collection_link || '',
-            status_discontinued: editingItem?.status_discontinued || false,
-            is_focus: editingItem?.is_focus || false
-        });
-
-        const handleSubmit = async (e: React.FormEvent) => {
-            e.preventDefault();
-            if (editingItem) {
-                await handleUpdate(formData);
-            } else {
-                await handleCreate(formData);
-            }
-        };
-
-        return (
-            <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
-                <div className="flex justify-between items-center mb-6">
-                    <h2 className="text-2xl font-bold text-gray-800">
-                        {editingItem ? '✏️ แก้ไขสินค้า' : '➕ เพิ่มสินค้าใหม่'}
-                    </h2>
-                    <button onClick={() => { setShowForm(false); setEditingItem(null); }} className="text-gray-500 hover:text-gray-700">
-                        <X size={24} />
-                    </button>
-                </div>
-
-                <form onSubmit={handleSubmit} className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label className="block text-sm font-medium mb-2 text-gray-700">แบรนด์</label>
-                            <select required value={formData.brand_id} onChange={(e) => setFormData({ ...formData, brand_id: parseInt(e.target.value) })} className="w-full border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                                <option value={0}>เลือกแบรนด์</option>
-                                {brands.map(brand => (
-                                    <option key={brand.brand_id} value={brand.brand_id}>{brand.brandname}</option>
-                                ))}
-                            </select>
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-medium mb-2 text-gray-700">โปรเจกต์</label>
-                            <select required value={formData.project_id} onChange={(e) => setFormData({ ...formData, project_id: parseInt(e.target.value) })} className="w-full border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                                <option value={0}>เลือกโปรเจกต์</option>
-                                {projects.map(project => (
-                                    <option key={project.project_id} value={project.project_id}>{project.project_name}</option>
-                                ))}
-                            </select>
-                        </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label className="block text-sm font-medium mb-2 text-gray-700">ประเภทหลัก</label>
-                            <select required value={formData.main_type} onChange={(e) => setFormData({ ...formData, main_type: e.target.value })} className="w-full border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                                <option value="">เลือกประเภทหลัก</option>
-                                <option value="Surface">Surface</option>
-                                <option value="Furniture">Furniture</option>
-                            </select>
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-medium mb-2 text-gray-700">ประเภทย่อย</label>
-                            <input type="text" required value={formData.type} onChange={(e) => setFormData({ ...formData, type: e.target.value })} className="w-full border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
-                        </div>
-                    </div>
-
-                    <div>
-                        <label className="block text-sm font-medium mb-2 text-gray-700">รายละเอียด</label>
-                        <textarea value={formData.detail} onChange={(e) => setFormData({ ...formData, detail: e.target.value })} className="w-full border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" rows={3}></textarea>
-                    </div>
-
-                    <div>
-                        <label className="block text-sm font-medium mb-2 text-gray-700">รูปภาพ (URL)</label>
-                        <div className="flex gap-2">
-                            <input type="text" value={formData.image} onChange={(e) => setFormData({ ...formData, image: e.target.value })} className="flex-1 border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="https://..." />
-                            <label className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-3 rounded-lg cursor-pointer flex items-center gap-2 transition">
-                                <Upload size={20} />
-                                อัปโหลด
-                                <input type="file" accept="image/*" className="hidden" onChange={async (e) => {
-                                    const file = e.target.files?.[0];
-                                    if (file) {
-                                        const url = await handleImageUpload(file);
-                                        if (url) setFormData({ ...formData, image: url });
-                                    }
-                                }} />
-                            </label>
-                        </div>
-                        {formData.image && (
-                            <div className="mt-3">
-                                <img src={formData.image} alt="Preview" className="w-32 h-32 object-cover rounded-lg shadow" />
-                            </div>
-                        )}
-                    </div>
-
-                    <div>
-                        <label className="block text-sm font-medium mb-2 text-gray-700">ลิงก์คอลเล็กชัน</label>
-                        <input type="url" value={formData.collection_link} onChange={(e) => setFormData({ ...formData, collection_link: e.target.value })} className="w-full border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="https://..." />
-                    </div>
-
-                    <div className="flex gap-6">
-                        <label className="flex items-center gap-2 cursor-pointer">
-                            <input type="checkbox" checked={formData.status_discontinued} onChange={(e) => setFormData({ ...formData, status_discontinued: e.target.checked })} className="w-5 h-5 text-red-600" />
-                            <span className="text-gray-700">สินค้าหมดแล้ว (Discontinued)</span>
-                        </label>
-                    </div>
-
-                    <div className="flex gap-3 pt-4">
-                        <button type="submit" disabled={loading} className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-medium transition disabled:bg-gray-400 flex items-center justify-center gap-2">
-                            <Save size={20} />
-                            {loading ? 'กำลังบันทึก...' : 'บันทึกข้อมูล'}
-                        </button>
-                        <button type="button" onClick={() => { setShowForm(false); setEditingItem(null); }} className="px-6 bg-gray-500 hover:bg-gray-600 text-white py-3 rounded-lg font-medium transition">
-                            ยกเลิก
-                        </button>
-                    </div>
-                </form>
-            </div>
-        );
-    };
-
-    // Product Focus Selection Component
-    const ProductFocusSelection = () => {
-        const surfaceProducts = products.filter(p => p.main_type === 'Surface' && !p.status_discontinued);
-        const furnitureProducts = products.filter(p => p.main_type === 'Furniture' && !p.status_discontinued);
-
-        const filteredSurfaceProducts = surfaceProducts.filter(p =>
-            p.brandname?.toLowerCase().includes(focusSearchSurface.toLowerCase()) ||
-            p.type?.toLowerCase().includes(focusSearchSurface.toLowerCase()) ||
-            p.detail?.toLowerCase().includes(focusSearchSurface.toLowerCase())
-        );
-
-        const filteredFurnitureProducts = furnitureProducts.filter(p =>
-            p.brandname?.toLowerCase().includes(focusSearchFurniture.toLowerCase()) ||
-            p.type?.toLowerCase().includes(focusSearchFurniture.toLowerCase()) ||
-            p.detail?.toLowerCase().includes(focusSearchFurniture.toLowerCase())
-        );
-
-        const renderProductCard = (product: Product, type: 'surface' | 'furniture') => {
-            const isSelected = type === 'surface'
-                ? focusSelection.surface_products.includes(product.collection_id)
-                : focusSelection.furniture_products.includes(product.collection_id);
-
-            return (
-                <div
-                    key={product.collection_id}
-                    onClick={() => handleToggleProduct(product.collection_id, type)}
-                    className={`relative cursor-pointer rounded-lg overflow-hidden transition-all duration-200 ${isSelected
-                        ? 'ring-4 ring-yellow-400 shadow-xl scale-105'
-                        : 'hover:shadow-lg hover:scale-102 border-2 border-gray-200'
-                        }`}
-                >
-                    {isSelected && (
-                        <div className="absolute top-2 right-2 z-10 bg-yellow-400 text-white rounded-full p-2 shadow-lg">
-                            <Star size={20} fill="currentColor" />
-                        </div>
-                    )}
-                    <div className="aspect-square bg-gray-100">
-                        {product.image ? (
-                            <img
-                                src={product.image}
-                                alt={product.detail}
-                                className="w-full h-full object-cover"
+                            <input
+                                type="text"
+                                value={formData.brand_logo}
+                                onChange={(e) => setFormData({ ...formData, brand_logo: e.target.value })}
+                                placeholder="https://..."
+                                className="flex-1 border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                             />
-                        ) : (
-                            <div className="w-full h-full flex items-center justify-center">
-                                <ImageIcon size={48} className="text-gray-300" />
+                            <label className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-3 rounded-lg cursor-pointer flex items-center gap-2 transition">
+                                <Upload size={20} />
+                                อัปโหลด
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    className="hidden"
+                                    onChange={async (e) => {
+                                        const file = e.target.files?.[0];
+                                        if (file) {
+                                            const url = await handleImageUpload(file);
+                                            if (url) setFormData({ ...formData, brand_logo: url });
+                                        }
+                                    }}
+                                />
+                            </label>
+                        </div>
+                        {formData.brand_logo && (
+                            <div className="mt-3">
+                                <img src={formData.brand_logo} alt="Brand Logo" className="w-32 h-32 object-contain rounded-lg border" />
                             </div>
                         )}
                     </div>
-                    <div className="p-3 bg-white">
-                        <h3 className="font-semibold text-gray-800 truncate">{product.brandname}</h3>
-                        <p className="text-sm text-gray-600 truncate">{product.type}</p>
-                        <p className="text-xs text-gray-500 truncate mt-1">{product.detail}</p>
-                    </div>
-                </div>
-            );
-        };
 
-        return (
-            <div className="space-y-8">
-                {/* Save Button */}
-                <div className="bg-white rounded-xl shadow-lg p-6">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <h2 className="text-2xl font-bold text-gray-800">🌟 Product Focus Selection</h2>
-                            <p className="text-gray-600 mt-1">
-                                เลือก Surface {focusSelection.surface_products.length}/4 |
-                                Furniture {focusSelection.furniture_products.length}/4
-                            </p>
-                        </div>
+                    <div className="pt-4">
                         <button
-                            onClick={handleSaveFocusSelection}
-                            disabled={loading || focusSelection.surface_products.length !== 4 || focusSelection.furniture_products.length !== 4}
-                            className="bg-green-600 hover:bg-green-700 text-white px-8 py-3 rounded-lg font-medium transition disabled:bg-gray-400 flex items-center gap-2 shadow-lg"
+                            onClick={() => handleSaveHomepageFocus(formData)}
+                            disabled={loading || !formData.brand_name}
+                            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-medium transition disabled:bg-gray-400 flex items-center justify-center gap-2"
                         >
                             <Save size={20} />
-                            {loading ? 'กำลังบันทึก...' : 'บันทึกการเลือก'}
+                            {loading ? 'กำลังบันทึก...' : 'บันทึกข้อมูล'}
                         </button>
                     </div>
                 </div>
 
-                {/* Surface Products */}
-                <div className="bg-white rounded-xl shadow-lg p-6">
-                    <div className="mb-6">
-                        <h3 className="text-xl font-bold text-gray-800 mb-2">
-                            🏔️ Surface Products ({focusSelection.surface_products.length}/4)
-                        </h3>
-                        <div className="relative">
-                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-                            <input
-                                type="text"
-                                value={focusSearchSurface}
-                                onChange={(e) => setFocusSearchSurface(e.target.value)}
-                                placeholder="ค้นหา Surface..."
-                                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                            />
-                        </div>
-                    </div>
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-                        {filteredSurfaceProducts.map(product => renderProductCard(product, 'surface'))}
-                    </div>
-                    {filteredSurfaceProducts.length === 0 && (
-                        <div className="text-center py-12 text-gray-500">
-                            ไม่พบสินค้า Surface
-                        </div>
-                    )}
-                </div>
-
-                {/* Furniture Products */}
-                <div className="bg-white rounded-xl shadow-lg p-6">
-                    <div className="mb-6">
-                        <h3 className="text-xl font-bold text-gray-800 mb-2">
-                            🪑 Furniture Products ({focusSelection.furniture_products.length}/4)
-                        </h3>
-                        <div className="relative">
-                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-                            <input
-                                type="text"
-                                value={focusSearchFurniture}
-                                onChange={(e) => setFocusSearchFurniture(e.target.value)}
-                                placeholder="ค้นหา Furniture..."
-                                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                            />
-                        </div>
-                    </div>
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-                        {filteredFurnitureProducts.map(product => renderProductCard(product, 'furniture'))}
-                    </div>
-                    {filteredFurnitureProducts.length === 0 && (
-                        <div className="text-center py-12 text-gray-500">
-                            ไม่พบสินค้า Furniture
-                        </div>
-                    )}
-                </div>
-            </div>
-        );
-    };
-
-    // Data Table Component
-    const DataTable = () => {
-        if (activeTab === 'productfocus') {
-            return <ProductFocusSelection />;
-        }
-
-        let data: any[] = [];
-        let columns: { key: string; label: string }[] = [];
-        let idKey = '';
-
-        switch (activeTab) {
-            case 'brands':
-                data = brands;
-                columns = [
-                    { key: 'brand_id', label: 'ID' },
-                    { key: 'brandname', label: 'ชื่อแบรนด์' },
-                    { key: 'main_type', label: 'ประเภทหลัก' },
-                    { key: 'type', label: 'ประเภทย่อย' },
-                    { key: 'image', label: 'รูปภาพ' }
-                ];
-                idKey = 'brand_id';
-                break;
-            case 'projects':
-                data = projects;
-                columns = [
-                    { key: 'project_id', label: 'ID' },
-                    { key: 'project_name', label: 'ชื่อโปรเจกต์' },
-                    { key: 'project_category', label: 'ประเภท' },
-                    { key: 'data_update', label: 'วันที่อัปเดต' }
-                ];
-                idKey = 'project_id';
-                break;
-            case 'products':
-                data = products;
-                columns = [
-                    { key: 'collection_id', label: 'ID' },
-                    { key: 'brandname', label: 'แบรนด์' },
-                    { key: 'project_name', label: 'โปรเจกต์' },
-                    { key: 'main_type', label: 'ประเภทหลัก' },
-                    { key: 'type', label: 'ประเภทย่อย' },
-                    { key: 'detail', label: 'รายละเอียด' },
-                    { key: 'image', label: 'รูปภาพ' },
-                    { key: 'status_discontinued', label: 'สถานะ' }
-                ];
-                idKey = 'collection_id';
-                break;
-            case 'focus':
-                data = focusRounds;
-                columns = [
-                    { key: 'round_id', label: 'ID' },
-                    { key: 'round_name', label: 'ชื่อรอบ' },
-                    { key: 'update_date', label: 'วันที่อัปเดต' },
-                    { key: 'note', label: 'หมายเหตุ' }
-                ];
-                idKey = 'round_id';
-                break;
-        }
-
-        // Filter data based on search
-        const filteredData = data.filter(item => {
-            const searchLower = searchTerm.toLowerCase();
-            return Object.values(item).some(value =>
-                String(value).toLowerCase().includes(searchLower)
-            );
-        });
-
-        return (
-            <div className="bg-white rounded-xl shadow-lg overflow-hidden">
-                <div className="overflow-x-auto">
-                    <table className="w-full">
-                        <thead className="bg-gradient-to-r from-blue-600 to-purple-600 text-white">
-                            <tr>
-                                {columns.map(col => (
-                                    <th key={col.key} className="px-6 py-4 text-left text-sm font-semibold">{col.label}</th>
-                                ))}
-                                <th className="px-6 py-4 text-right text-sm font-semibold">จัดการ</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-gray-200">
-                            {loading ? (
-                                <tr>
-                                    <td colSpan={columns.length + 1} className="px-6 py-12 text-center text-gray-500">
-                                        <div className="flex justify-center items-center gap-2">
-                                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                                            <span>กำลังโหลดข้อมูล...</span>
-                                        </div>
-                                    </td>
-                                </tr>
-                            ) : filteredData.length === 0 ? (
-                                <tr>
-                                    <td colSpan={columns.length + 1} className="px-6 py-12 text-center text-gray-500">
-                                        ไม่มีข้อมูล
-                                    </td>
-                                </tr>
-                            ) : (
-                                filteredData.map((item, index) => (
-                                    <tr key={item[idKey]} className={`hover:bg-gray-50 transition ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}>
-                                        {columns.map(col => (
-                                            <td key={col.key} className="px-6 py-4 text-sm text-gray-700">
-                                                {col.key === 'image' ? (
-                                                    item[col.key] ? (
-                                                        <img src={item[col.key]} alt="Preview" className="w-16 h-16 object-cover rounded-lg shadow" />
-                                                    ) : (
-                                                        <div className="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center">
-                                                            <ImageIcon size={24} className="text-gray-400" />
-                                                        </div>
-                                                    )
-                                                ) : col.key === 'status_discontinued' ? (
-                                                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${item[col.key] ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}`}>
-                                                        {item[col.key] ? 'หมดแล้ว' : 'มีจำหน่าย'}
-                                                    </span>
-                                                ) : col.key === 'is_focus' ? (
-                                                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${item[col.key] ? 'bg-yellow-100 text-yellow-800' : 'bg-gray-100 text-gray-800'}`}>
-                                                        {item[col.key] ? '⭐ Focus' : 'ปกติ'}
-                                                    </span>
-                                                ) : col.key === 'project_category' ? (
-                                                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${item[col.key] === 'Commercial' ? 'bg-blue-100 text-blue-800' : 'bg-purple-100 text-purple-800'}`}>
-                                                        {item[col.key] === 'Commercial' ? '🏢 Commercial' : '🏠 Residential'}
-                                                    </span>
-                                                ) : (
-                                                    String(item[col.key] || '-')
-                                                )}
-                                            </td>
-                                        ))}
-                                        <td className="px-6 py-4 text-sm">
-                                            <div className="flex justify-end gap-2">
-                                                <button
-                                                    onClick={() => { setEditingItem(item); setShowForm(true); }}
-                                                    className="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition"
-                                                    title="แก้ไข"
-                                                >
-                                                    <Edit2 size={18} />
-                                                </button>
-                                                <button
-                                                    onClick={() => handleDelete(item[idKey])}
-                                                    className="p-2 text-red-600 hover:bg-red-100 rounded-lg transition"
-                                                    title="ลบ"
-                                                >
-                                                    <Trash2 size={18} />
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))
+                {/* Preview */}
+                {formData.brand_name && (
+                    <div className="mt-6 p-4 bg-gray-50 rounded-lg border">
+                        <h3 className="text-sm font-bold text-gray-700 mb-3">ตัวอย่างการแสดงผล:</h3>
+                        <div className="bg-white p-4 rounded-lg">
+                            {formData.brand_logo && (
+                                <img src={formData.brand_logo} alt="Logo" className="h-12 mb-2" />
                             )}
-                        </tbody>
-                    </table>
-                </div>
+                            <div className="text-2xl font-bold text-gray-900 mb-2">{formData.brand_name}</div>
+                            <p className="text-gray-700 mb-2">{formData.description}</p>
+                            {formData.made_in && (
+                                <p className="text-gray-800">
+                                    <span className="font-semibold">Made in: </span>
+                                    <span>{formData.made_in}</span>
+                                </p>
+                            )}
+                        </div>
+                    </div>
+                )}
             </div>
         );
     };
@@ -944,162 +514,90 @@ export default function AdminDashboard() {
     // Login Screen
     if (!isAuthenticated) {
         return (
-            <div className="min-h-screen bg-gradient-to-br from-blue-600 via-purple-600 to-pink-500 flex items-center justify-center p-4">
+            <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 flex items-center justify-center p-4">
                 <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md">
                     <div className="text-center mb-8">
-                        <div className="text-6xl mb-4">🔐</div>
-                        <h1 className="text-3xl font-bold text-gray-800 mb-2">Admin Panel</h1>
-                        <p className="text-gray-600">ระบบจัดการแบรนด์และโปรเจกต์</p>
+                        <div className="bg-gradient-to-r from-blue-600 to-purple-600 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <LogOut className="text-white" size={40} />
+                        </div>
+                        <h1 className="text-3xl font-bold text-gray-800 mb-2">Admin Dashboard</h1>
+                        <p className="text-gray-600">กรุณาเข้าสู่ระบบเพื่อดำเนินการต่อ</p>
                     </div>
-                    <div>
-                        <label className="block text-sm font-medium mb-2 text-gray-700">รหัสผ่าน</label>
-                        <input
-                            type="password"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            onKeyPress={(e) => e.key === 'Enter' && handleLogin(e)}
-                            className="w-full border border-gray-300 p-4 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-lg"
-                            placeholder="กรอกรหัสผ่าน"
-                            autoFocus
-                        />
-                    </div>
-                    <button
-                        onClick={handleLogin}
-                        className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-4 rounded-lg hover:from-blue-700 hover:to-purple-700 transition font-medium mt-6 text-lg shadow-lg"
-                    >
-                        เข้าสู่ระบบ
-                    </button>
-                    <div className="mt-6 text-center">
-                        <p className="text-sm text-gray-500">
-                            รหัสทดสอบ: <span className="font-mono bg-gray-100 px-2 py-1 rounded">Superadmin123</span>
-                        </p>
-                    </div>
+                    <form onSubmit={handleLogin} className="space-y-6">
+                        <div>
+                            <label className="block text-sm font-medium mb-2 text-gray-700">รหัสผ่าน</label>
+                            <input
+                                type="password"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                className="w-full border-2 border-gray-300 p-4 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                                placeholder="••••••••"
+                                required
+                            />
+                        </div>
+                        <button
+                            type="submit"
+                            className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white py-4 rounded-xl font-semibold transition shadow-lg hover:shadow-xl"
+                        >
+                            เข้าสู่ระบบ
+                        </button>
+                    </form>
                 </div>
             </div>
         );
     }
 
     // Main Dashboard
-    const tabs = [
-        { id: 'brands', name: '🏷️ แบรนด์', icon: '🏷️' },
-        { id: 'projects', name: '📁 โปรเจกต์', icon: '📁' },
-        { id: 'products', name: '🧩 สินค้า', icon: '🧩' },
-        { id: 'productfocus', name: '🌟 Product Focus', icon: '🌟' }
-    ];
-
     return (
         <div className="min-h-screen bg-gray-50">
             {/* Header */}
-            <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg">
-                <div className="container mx-auto px-4 py-4">
-                    <div className="flex justify-between items-center">
-                        <div>
-                            <h1 className="text-2xl font-bold">🎨 Brand Project Admin</h1>
-                            <p className="text-blue-100 text-sm">ระบบจัดการแบรนด์และโปรเจกต์</p>
-                        </div>
-                        <button
-                            onClick={() => setIsAuthenticated(false)}
-                            className="bg-red-500 hover:bg-red-600 px-6 py-3 rounded-lg flex items-center gap-2 transition shadow-lg"
-                        >
-                            <LogOut size={20} />
-                            ออกจากระบบ
-                        </button>
+            <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-6 shadow-lg">
+                <div className="max-w-7xl mx-auto flex justify-between items-center">
+                    <div>
+                        <h1 className="text-3xl font-bold mb-2">🎨 Admin Dashboard</h1>
+                        <p className="text-blue-100">จัดการข้อมูลระบบ AMO</p>
+                    </div>
+                    <button
+                        onClick={() => setIsAuthenticated(false)}
+                        className="bg-white/20 hover:bg-white/30 px-6 py-3 rounded-xl font-medium transition flex items-center gap-2"
+                    >
+                        <LogOut size={20} />
+                        ออกจากระบบ
+                    </button>
+                </div>
+            </div>
+
+            {/* Navigation Tabs */}
+            <div className="bg-white shadow-md sticky top-0 z-10">
+                <div className="max-w-7xl mx-auto">
+                    <div className="flex overflow-x-auto">
+                        {[
+                            { id: 'brands', label: '🏷️ แบรนด์' },
+                            { id: 'projects', label: '📁 โปรเจกต์' },
+                            { id: 'products', label: '🛋️ สินค้า' },
+                            { id: 'homeslider', label: '🖼️ Slider หน้า Home' },
+                            { id: 'homefocus', label: '⭐ Product Focus' }
+                        ].map(tab => (
+                            <button
+                                key={tab.id}
+                                onClick={() => { setActiveTab(tab.id); setShowForm(false); setSearchTerm(''); }}
+                                className={`px-6 py-4 font-medium transition whitespace-nowrap ${activeTab === tab.id
+                                    ? 'border-b-4 border-blue-600 text-blue-600 bg-blue-50'
+                                    : 'text-gray-600 hover:bg-gray-100'
+                                    }`}
+                            >
+                                {tab.label}
+                            </button>
+                        ))}
                     </div>
                 </div>
             </div>
 
-            <div className="container mx-auto px-4 py-6">
-                {/* Tabs */}
-                <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
-                    {tabs.map(tab => (
-                        <button
-                            key={tab.id}
-                            onClick={() => {
-                                setActiveTab(tab.id);
-                                setShowForm(false);
-                                setEditingItem(null);
-                                setSearchTerm('');
-                            }}
-                            className={`px-6 py-3 rounded-lg font-medium transition whitespace-nowrap flex items-center gap-2 ${activeTab === tab.id
-                                ? 'bg-blue-600 text-white shadow-lg transform scale-105'
-                                : 'bg-white text-gray-700 hover:bg-gray-100 shadow'
-                                }`}
-                        >
-                            <span className="text-xl">{tab.icon}</span>
-                            {tab.name}
-                        </button>
-                    ))}
-                </div>
-
-                {/* Search Bar and Add Button - Hide for productfocus tab */}
-                {activeTab !== 'productfocus' && (
-                    <div className="mb-6 flex gap-3 flex-wrap">
-                        <div className="flex-1 min-w-[300px]">
-                            <div className="relative">
-                                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-                                <input
-                                    type="text"
-                                    value={searchTerm}
-                                    onChange={(e) => setSearchTerm(e.target.value)}
-                                    placeholder="ค้นหา..."
-                                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                />
-                            </div>
-                        </div>
-                        <button
-                            onClick={() => { setShowForm(true); setEditingItem(null); }}
-                            className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg flex items-center gap-2 transition shadow-lg"
-                        >
-                            <Plus size={20} />
-                            เพิ่มข้อมูลใหม่
-                        </button>
-                    </div>
-                )}
-
-                {/* Forms */}
-                {showForm && activeTab !== 'productfocus' && (
-                    <div>
-                        {activeTab === 'brands' && <BrandForm />}
-                        {activeTab === 'projects' && <ProjectForm />}
-                        {activeTab === 'products' && <ProductForm />}
-                    </div>
-                )}
-
-                {/* Data Table */}
-                <DataTable />
-
-                {/* Stats - Hide for productfocus tab */}
-                {activeTab !== 'productfocus' && (
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-6">
-                        <div className="bg-white p-6 rounded-lg shadow-lg">
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <p className="text-gray-500 text-sm">แบรนด์ทั้งหมด</p>
-                                    <p className="text-3xl font-bold text-blue-600">{brands.length}</p>
-                                </div>
-                                <div className="text-4xl">🏷️</div>
-                            </div>
-                        </div>
-                        <div className="bg-white p-6 rounded-lg shadow-lg">
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <p className="text-gray-500 text-sm">โปรเจกต์ทั้งหมด</p>
-                                    <p className="text-3xl font-bold text-purple-600">{projects.length}</p>
-                                </div>
-                                <div className="text-4xl">📁</div>
-                            </div>
-                        </div>
-                        <div className="bg-white p-6 rounded-lg shadow-lg">
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <p className="text-gray-500 text-sm">สินค้าทั้งหมด</p>
-                                    <p className="text-3xl font-bold text-green-600">{products.length}</p>
-                                </div>
-                                <div className="text-4xl">🧩</div>
-                            </div>
-                        </div>
-                    </div>
-                )}
+            {/* Content */}
+            <div className="max-w-7xl mx-auto p-6">
+                {activeTab === 'homeslider' && <HomeSliderManagement />}
+                {activeTab === 'homefocus' && <HomepageFocusManagement />}
+                {/* Add other existing tab content here */}
             </div>
         </div>
     );
