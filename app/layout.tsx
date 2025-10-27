@@ -13,16 +13,16 @@ const Layout = ({ children }: { children: ReactNode }) => {
 
   return (
     <html>
-      <body className="bg-white">
-        {/* ✅ ปรับให้อยู่ใน flow ปกติ ไม่ใช้ absolute */}
+      <body className="bg-white relative">
+        {/* ✅ Navbar ซ้อน page ได้ แต่ไม่เลื่อนตาม */}
         {!hideNavbar && (
-          <div className="fixed top-0 left-0 w-full z-50 bg-transparent backdrop-blur-sm">
+          <div className="absolute top-0 left-0 w-full z-50 bg-transparent">
             <Navbar />
           </div>
         )}
 
-        {/* ✅ ไม่เว้นขาวด้านบนอีกต่อไป */}
-        <main className={hideNavbar ? "w-full" : "w-full"}>
+        {/* ✅ ให้เนื้อหาข้างล่างไม่โดนทับ ถ้ามีภาพพื้นหลังจะเห็น Navbar ซ้อนอยู่ */}
+        <main className="w-full">
           {children}
         </main>
 

@@ -151,7 +151,7 @@ const ProjectPage = () => {
   };
 
   return (
-    <div className="bg-[#2d2d2d] min-h-screen text-white px-4 py-8 pt-20">
+    <div className="bg-[#2d2d2d] min-h-screen text-white px-4 py-8 pt-35">
       <p className="text-sm mb-4">
         We have a diverse body of work and utilize various materials.
       </p>
@@ -178,8 +178,8 @@ const ProjectPage = () => {
           <button
             key={tab}
             className={`pb-2 text-lg font-medium transition ${activeTab === tab
-                ? 'border-b-4 border-white text-white'
-                : 'text-gray-400 hover:text-gray-200'
+              ? 'border-b-4 border-white text-white'
+              : 'text-gray-400 hover:text-gray-200'
               }`}
             onClick={() => setActiveTab(tab as 'Residential' | 'Commercial')}
           >

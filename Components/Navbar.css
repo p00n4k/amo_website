@@ -6,7 +6,7 @@
 
 /* Navbar */
 .navbar {
-  @apply w-full mx-[50px] px-12 py-4 bg-white shadow-md rounded-full;
+  @apply w-full mx-[50px] px-12 py-4 bg-white  rounded-full;
 }
 
 /* Navbar content */
@@ -46,7 +46,7 @@
   @apply flex items-center;
 }
 
-.navbar-right > * {
+.navbar-right {
   @apply ml-4;
 }
 
