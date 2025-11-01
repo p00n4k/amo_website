@@ -11,7 +11,7 @@ const dbConfig = {
   host: process.env.DB_HOST || 'localhost',
   user: process.env.DB_USER || 'root',
   password: process.env.DB_PASSWORD || '',
-  database: process.env.DB_NAME || 'brand_project_db'
+  database: process.env.DB_NAME || 'brand_project_db',
 };
 
 // ============================================
@@ -20,31 +20,40 @@ const dbConfig = {
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const projectId = searchParams.get('project_id');
-  
+
   const connection = await mysql.createConnection(dbConfig);
-  
+
   try {
     if (projectId) {
-      // ดึง Collections ที่เชื่อมกับ Project นี้
+      // ✅ ดึง Collections ที่เชื่อมกับ Project นี้
       const [rows] = await connection.execute(
-        `SELECT 
+        `
+        SELECT 
           pc.collection_id,
-          pc.collection_name,
           pc.type,
+          pc.detail,
+          pc.image,
           prc.display_order,
           prc.project_collection_id
         FROM ProjectCollection prc
         INNER JOIN ProductCollection pc ON prc.collection_id = pc.collection_id
         WHERE prc.project_id = ?
-        ORDER BY prc.display_order ASC, pc.collection_name ASC`,
+        ORDER BY prc.display_order ASC, pc.type ASC
+        `,
         [projectId]
       );
       return NextResponse.json(rows);
     } else {
-      // ดึง Collections ทั้งหมด
-      const [rows] = await connection.execute(
-        'SELECT collection_id, collection_name, type FROM ProductCollection ORDER BY collection_name ASC'
-      );
+      // ✅ ดึง Collections ทั้งหมด (ไม่มี collection_name แล้ว)
+      const [rows] = await connection.execute(`
+        SELECT 
+          collection_id,
+          type,
+          detail,
+          image
+        FROM ProductCollection
+        ORDER BY type ASC
+      `);
       return NextResponse.json(rows);
     }
   } catch (error) {
@@ -60,7 +69,7 @@ export async function GET(request: NextRequest) {
 // ============================================
 export async function POST(request: NextRequest) {
   const connection = await mysql.createConnection(dbConfig);
-  
+
   try {
     const body = await request.json();
     const { project_id, collection_id, display_order } = body;
@@ -108,7 +117,7 @@ export async function POST(request: NextRequest) {
 // ============================================
 export async function PUT(request: NextRequest) {
   const connection = await mysql.createConnection(dbConfig);
-  
+
   try {
     const body = await request.json();
     const { project_collection_id, display_order } = body;
@@ -142,9 +151,9 @@ export async function DELETE(request: NextRequest) {
   const projectCollectionId = searchParams.get('project_collection_id');
   const projectId = searchParams.get('project_id');
   const collectionId = searchParams.get('collection_id');
-  
+
   const connection = await mysql.createConnection(dbConfig);
-  
+
   try {
     if (projectCollectionId) {
       // ลบโดยใช้ ID ของความสัมพันธ์
