@@ -18,7 +18,7 @@ export async function GET() {
   const connection = await mysql.createConnection(dbConfig);
   try {
     const [rows] = await connection.execute(
-      'SELECT project_id, project_name, data_update, project_category FROM Project ORDER BY project_id DESC'
+      'SELECT project_id, project_name, data_update, project_type as project_category FROM Project ORDER BY project_id DESC'
     );
     return NextResponse.json(rows);
   } catch (error) {
@@ -36,11 +36,11 @@ export async function POST(request: NextRequest) {
   const connection = await mysql.createConnection(dbConfig);
   try {
     const body = await request.json();
-    const { project_name, data_update, project_category } = body; // ✅ เพิ่ม project_category
+    const { project_name, data_update, project_category } = body;
 
     const [result] = await connection.execute(
-      'INSERT INTO Project (project_name, data_update, project_category) VALUES (?, ?, ?)',
-      [project_name, data_update, project_category || 'Residential'] // ✅ ตั้งค่า default
+      'INSERT INTO Project (project_name, data_update, project_type) VALUES (?, ?, ?)',
+      [project_name, data_update, project_category || 'Residential']
     );
 
     return NextResponse.json(

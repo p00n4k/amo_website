@@ -30,7 +30,7 @@ export async function PUT(
       `UPDATE Project 
        SET project_name = ?, 
            data_update = ?, 
-           project_category = ?
+           project_type = ?
        WHERE project_id = ?`,
       [project_name, data_update, project_category, id]
     );
