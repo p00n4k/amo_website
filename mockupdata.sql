@@ -11,10 +11,10 @@ VALUES
 -- ============================================
 -- 📁 Project (ตัวอย่าง 2 โปรเจกต์)
 -- ============================================
-INSERT INTO Project (project_name, data_update)
+INSERT INTO Project (project_name, project_type, data_update)
 VALUES
-('Project Pavilion 2025', '2025-09-01'),
-('Project Lifestyle Space', '2025-09-15'),
+('Project Pavilion 2025', 'Residential', '2025-09-01'),
+('Project Lifestyle Space', 'Residential', '2025-09-15'),
 ('Project Urban Living 2025', 'Residential', '2025-10-01'),
 ('Project Modern Office 2025', 'Commercial', '2025-10-05'),
 ('Project Resort Serenity 2025', 'Commercial', '2025-10-10'),
@@ -23,6 +23,7 @@ VALUES
 ('Project Zen Residence 2026', 'Residential', '2026-02-12'),
 ('Project Skyline Tower 2026', 'Commercial', '2026-03-01'),
 ('Project Green Habitat 2026', 'Residential', '2026-04-22');
+
 
 -- ============================================
 -- 🧩 ProductCollection (8 ชิ้น — Surface 4, Furniture 4)
@@ -77,3 +78,21 @@ VALUES
 (9, '/images/product/productfocus1.jpg'),
 (10, '/images/product/productfocus1.jpg'),
 (10, '/images/product/productfocus1.jpg');
+
+
+INSERT INTO HomeSlider (image_url, display_order, is_active) VALUES
+('/images/slider/slide1.jpg', 1, TRUE),
+('/images/slider/slide2.jpg', 2, TRUE),
+('/images/slider/slide3.jpg', 3, TRUE);
+
+-- เพิ่ม Product Focus เริ่มต้น
+INSERT INTO HomepageFocus (brand_name, brand_logo, description, made_in, brand_link, is_active) VALUES
+('atlas concorde', '/images/brands/atlas-logo.png', 'A system of indoor & outdoor surfaces that can be used in any context, from residential to large-scale commercial.', 'Italy', 'https://www.atlasconcorde.com', TRUE);
+
+-- ============================================
+-- 📊 สร้าง Index เพื่อเพิ่มประสิทธิภาพ
+-- ============================================
+CREATE INDEX idx_slider_order ON HomeSlider(display_order);
+CREATE INDEX idx_slider_active ON HomeSlider(is_active);
+CREATE INDEX idx_focus_active ON HomepageFocus(is_active);
+CREATE INDEX idx_project_image_order ON ProjectImage(project_id, display_order);
