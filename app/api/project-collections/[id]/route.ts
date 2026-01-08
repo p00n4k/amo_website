@@ -8,25 +8,21 @@ const dbConfig = {
   database: process.env.DB_NAME || "brand_project_db",
 };
 
-export async function GET() {
+export async function GET(req, { params }) {
+  const { id } = params; // project_id
   const connection = await mysql.createConnection(dbConfig);
+
   try {
     const [rows] = await connection.execute(`
-      SELECT 
-        p.project_id,
-        p.project_name,
-        p.data_update,
-        p.project_type AS project_category,
-        GROUP_CONCAT(pc.type SEPARATOR ', ') AS collections
-      FROM Project p
-      LEFT JOIN ProjectCollection prc ON p.project_id = prc.project_id
-      LEFT JOIN ProductCollection pc ON prc.collection_id = pc.collection_id
-      GROUP BY p.project_id
-      ORDER BY p.project_id DESC
-    `);
+      SELECT image_id, project_id, image_url
+      FROM ProjectImage
+      WHERE project_id = ?
+      ORDER BY image_id ASC
+    `, [id]);
+
     return NextResponse.json(rows);
   } catch (error) {
-    console.error("Error fetching projects:", error);
+    console.error("Error fetching project images:", error);
     return NextResponse.json({ error: "Database error" }, { status: 500 });
   } finally {
     await connection.end();
